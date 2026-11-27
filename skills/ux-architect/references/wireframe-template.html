@@ -1,0 +1,329 @@
+<!doctype html>
+<!--
+  UI wireframe kit for the ux-architect skill.
+
+  Copy this file to a scratch path, edit the marked parts and render it with
+  scripts/render-wireframe.mjs. The kit is deliberately grey: it carries layout,
+  hierarchy and state, never brand styling. Change the kit only when the kit
+  cannot show the pattern you need, and say so in the answer.
+
+  States: set data-state on <body> to page, confirm, busy, empty or error.
+  Markup for the confirm state, the dialog, is present in every state and shown
+  only when data-state="confirm".
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Wireframe</title>
+    <style>
+      :root {
+        --ink: #1a1a1a;
+        --mid: #6b6b6b;
+        --line: #c9c9c9;
+        --fill: #efefef;
+        --fill-2: #e3e3e3;
+        --paper: #ffffff;
+        --band: #f7f7f7;
+        --note: #1a1a1a;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #d9d9d9;
+        color: var(--ink);
+        font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+
+      .canvas {
+        width: 100%;
+        min-height: 100vh;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .frame {
+        width: 100%;
+        max-width: 1200px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        display: flex;
+        min-height: 560px;
+        position: relative;
+      }
+
+      /* Left rail. Folded at medium width, gone at phone width. */
+      .rail {
+        width: 200px;
+        flex: none;
+        border-right: 1px solid var(--line);
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: var(--band);
+      }
+      .rail .logo { height: 22px; width: 96px; background: var(--fill-2); }
+      .rail .nav { height: 13px; background: var(--fill); border-radius: 3px; }
+      .rail .nav.active { background: var(--fill-2); outline: 1px solid var(--line); }
+
+      .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+      .topbar {
+        height: 52px;
+        flex: none;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 20px;
+      }
+      .topbar .crumb { color: var(--mid); }
+      .topbar .crumb strong { color: var(--ink); font-weight: 600; }
+      .topbar .spacer { flex: 1; }
+
+      .body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+
+      h1 { font-size: 22px; line-height: 1.2; margin: 0; font-weight: 600; }
+      h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--mid); margin: 0 0 8px; font-weight: 600; }
+      p { margin: 0; }
+      .muted { color: var(--mid); }
+
+      .facts { display: flex; flex-wrap: wrap; gap: 28px; }
+      .fact .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--mid); }
+      .fact .value { font-size: 18px; font-weight: 600; margin-top: 2px; }
+
+      .card { border: 1px solid var(--line); padding: 14px; background: var(--paper); }
+      .section { border-top: 1px solid var(--line); padding-top: 14px; }
+
+      .checks { display: flex; flex-direction: column; gap: 8px; }
+      .check { display: flex; gap: 8px; align-items: center; }
+      .box { width: 13px; height: 13px; border: 1px solid var(--mid); flex: none; display: inline-block; }
+      .box.on { background: var(--ink); border-color: var(--ink); }
+      .check.off { color: var(--mid); }
+
+      .actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-top: auto; }
+
+      .btn {
+        height: 32px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--mid);
+        background: var(--paper);
+        color: var(--ink);
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .btn .mk { margin-left: 0; height: 16px; min-width: 16px; color: var(--ink); align-self: center; }
+      .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+      .btn.ghost { border-color: var(--line); }
+      .btn[disabled] { opacity: .45; }
+
+      /* Backdrop and dialog, shown only in the confirm state. */
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 20, 20, .28);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      body[data-state="confirm"] .backdrop,
+      body[data-state="busy"] .backdrop { display: flex; }
+
+      .dialog {
+        width: 100%;
+        max-width: 460px;
+        background: var(--paper);
+        border: 1px solid var(--mid);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+      }
+      .dialog .head { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+      .dialog .head h2 { text-transform: none; letter-spacing: 0; font-size: 16px; color: var(--ink); margin: 0; }
+      .dialog .content { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+      .dialog .foot { padding: 12px 18px 16px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--line); }
+
+      /* Annotation marker. Numbers match the notes under the frame. */
+      .mk {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: #fff;
+        border: 1px solid var(--ink);
+        font-size: 10px;
+        font-weight: 700;
+        margin-left: 6px;
+        vertical-align: middle;
+        align-self: flex-start;
+        flex: none;
+      }
+
+      .notes {
+        width: 100%;
+        max-width: 1200px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        padding: 14px 18px;
+        margin: 0;
+      }
+      .notes h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mid); }
+      .notes ol { margin: 0; padding-left: 0; list-style: none; counter-reset: note; }
+      .notes li { margin-bottom: 4px; counter-increment: note; }
+      .notes li::before { content: counter(note) ". "; font-weight: 600; }
+      .notes li[data-for] { display: none; }
+      body[data-state="confirm"] .notes li[data-for="confirm"],
+      body[data-state="busy"] .notes li[data-for="confirm"] { display: list-item; }
+      .stamp-viewport::after { content: "Desktop 1440"; }
+      @media (max-width: 1150px) { .stamp-viewport::after { content: "Medium 1100"; } }
+      @media (max-width: 700px) { .stamp-viewport::after { content: "Mobile 390"; } }
+      body[data-state="confirm"] .stamp-state::after { content: " - confirm"; }
+      body[data-state="busy"] .stamp-state::after { content: " - busy"; }
+      body[data-state="empty"] .stamp-state::after { content: " - empty"; }
+      body[data-state="error"] .stamp-state::after { content: " - error"; }
+
+      .stamp {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+        color: #4a4a4a;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+      }
+
+      /* Medium width: the rail folds, as the portal shell does. */
+      @media (max-width: 1150px) {
+        .rail { width: 72px; padding: 16px 10px; }
+        .rail .logo { width: 40px; }
+        .rail .nav { width: 40px !important; }
+      }
+
+      /* Phone width: rail goes, facts stack, actions go full width. */
+      @media (max-width: 700px) {
+        .canvas { padding: 0; gap: 10px; }
+        .frame { border-left: 0; border-right: 0; min-height: 100vh; }
+        .rail { display: none; }
+        .topbar { padding: 0 14px; }
+        .body { padding: 14px; gap: 16px; }
+        .facts { flex-direction: column; gap: 14px; }
+        .actions { flex-direction: column-reverse; align-items: stretch; margin-top: 0; }
+        .actions .btn { justify-content: center; height: 40px; }
+        .stamp { padding: 0 14px; }
+        .notes { border-left: 0; border-right: 0; padding: 14px 16px; }
+        .backdrop { padding: 14px; }
+      }
+    </style>
+  </head>
+  <body data-state="page">
+    <div class="canvas">
+      <div class="stamp">
+        <span>Wireframe - accept a route<span class="stamp-state"></span></span>
+        <span class="stamp-viewport"></span>
+      </div>
+
+      <div class="frame">
+        <aside class="rail">
+          <div class="logo"></div>
+          <div class="nav" style="width: 78%"></div>
+          <div class="nav active" style="width: 90%"></div>
+          <div class="nav" style="width: 64%"></div>
+          <div class="nav" style="width: 72%"></div>
+          <div style="flex: 1"></div>
+          <div class="nav" style="width: 84%"></div>
+        </aside>
+
+        <div class="main">
+          <header class="topbar">
+            <span class="crumb">&larr; Opportunities</span>
+            <span class="spacer"></span>
+            <span class="crumb"><strong>Late summer refill</strong><span class="mk">1</span></span>
+            <span class="btn ghost">More</span>
+          </header>
+
+          <div class="body">
+            <div class="facts">
+              <div class="fact">
+                <div class="label">Recommended day</div>
+                <div class="value">12 Mar</div>
+              </div>
+              <div class="fact">
+                <div class="label">Earliest workable</div>
+                <div class="value">19 Mar</div>
+              </div>
+              <div class="fact">
+                <div class="label">Measure at</div>
+                <div class="value">27 Mar</div>
+              </div>
+            </div>
+            <p class="muted">This route needs 8 days of lead time before it can run.<span class="mk">2</span></p>
+
+            <div class="section">
+              <h2>Campaign</h2>
+              <p>Spring refill for returning customers: three posts and one paid set in the Berlin market.</p>
+            </div>
+
+            <div class="section">
+              <h2>Window</h2>
+              <p>12 Mar - 30 Mar</p>
+            </div>
+
+            <div class="section">
+              <h2>Gate checks</h2>
+              <div class="checks">
+                <div class="check"><span class="box on"></span> Brand profile approved</div>
+                <div class="check"><span class="box on"></span> Audience known</div>
+                <div class="check off"><span class="box"></span> Paid identity not linked<span class="mk">3</span></div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <span class="btn ghost">Set aside</span>
+              <span class="btn primary">Accept into plan<span class="mk">4</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="backdrop">
+          <div class="dialog">
+            <div class="head"><h2>Accept this route?<span class="mk">5</span></h2></div>
+            <div class="content">
+              <p>The route needs 8 days of lead time.</p>
+              <p>Earliest workable day is <strong>19 Mar</strong>, seven days after the recommended day.</p>
+              <p class="muted">Frozen window 12 Mar - 30 Mar.</p>
+            </div>
+            <div class="foot">
+              <span class="btn ghost">Cancel</span>
+              <span class="btn primary">Accept</span>
+              <span class="mk">6</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <h3>Notes</h3>
+        <ol>
+          <li>The member keeps the list one step away; the page carries the route's address.</li>
+          <li>The gap between the recommended day and the earliest workable day is the reason to decide now.</li>
+          <li>A check the surface reports and does not offer to fix here; the member reaches the fix from the plan.</li>
+          <li>One primary action. Set aside stays a ghost, and it stays reversible.</li>
+          <li data-for="confirm">The confirm repeats only the consequence, not the campaign text the member just read.</li>
+          <li data-for="confirm">The dialog closes back to the page it covered, and a refusal names the rule that refused it.</li>
+        </ol>
+      </div>
+    </div>
+  </body>
+</html>
