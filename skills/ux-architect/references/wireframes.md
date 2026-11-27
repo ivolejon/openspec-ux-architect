@@ -15,13 +15,18 @@ Terminology:
 
 ```bash
 mkdir -p /tmp/ux-wireframes
-cp .pi/skills/ux-architect/references/wireframe-template.html /tmp/ux-wireframes/<slug>.html
+# <skill-dir> is the directory that holds SKILL.md
+cp <skill-dir>/references/wireframe-template.html /tmp/ux-wireframes/<slug>.html
 # edit the body: content, sections, actions, markers and notes
-node .pi/skills/ux-architect/scripts/render-wireframe.mjs \
+node <skill-dir>/scripts/render-wireframe.mjs \
   --html /tmp/ux-wireframes/<slug>.html \
   --state page --state confirm \
   --viewport 1440x900 --viewport 1100x900 --viewport 390x844
 ```
+
+Add `--out <dir>` to write the images somewhere other than `/tmp/ux-wireframes/<slug>/`, for
+example a change's own `ui/` folder. Playwright comes from the project you run in; pass
+`--playwright-root <dir>` when it lives elsewhere.
 
 The renderer writes PNG files to `/tmp/ux-wireframes/<slug>/` and prints their paths. The name
 of each file states the surface, the state and the width, for example

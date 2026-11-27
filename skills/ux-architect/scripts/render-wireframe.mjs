@@ -37,6 +37,7 @@ function parseArgs(argv) {
       case '--out': options.out = value(); break;
       case '--state': options.states.push(value()); break;
       case '--viewport': options.viewports.push(value()); break;
+      case '--playwright-root': options.playwrightRoot = value(); break;
       case '--scale': options.scale = Number(value()); break;
       case '--no-full-page': options.fullPage = false; break;
       case '-h':
@@ -56,11 +57,48 @@ function parseViewport(text) {
 function usage() {
   return [
     'render-wireframe.mjs --html <file> [--out <dir>] [--state <name>]...',
-    '                    [--viewport 1440x900]... [--scale 2] [--no-full-page]',
+    '                    [--viewport 1440x900]... [--playwright-root <dir>]',
+    '                    [--scale 2] [--no-full-page]',
     '',
     `Default viewports: ${DEFAULT_VIEWPORTS.join(', ')}`,
     'Default state: the data-state the file already carries.',
   ].join('\n');
+}
+
+/**
+ * Playwright is not a dependency of this script. Find the copy the project it runs
+ * in already installed, so the skill works whether it lives in the project at
+ * `.agents/skills/`, at user level, or anywhere else.
+ *
+ * Order: an explicit `--playwright-root`, the same value from the environment, the
+ * `apps/web` app of the current directory, the current directory itself, then the
+ * directory above the script.
+ */
+function loadPlaywright(explicitRoot) {
+  const cwd = process.cwd();
+  const roots = [
+    explicitRoot,
+    process.env.WIREFRAME_PLAYWRIGHT_ROOT,
+    join(cwd, 'apps/web'),
+    cwd,
+    join(here, '..'),
+    repoRoot,
+  ].filter(Boolean);
+
+  for (const root of roots) {
+    try {
+      const fromRoot = createRequire(join(root, 'package.json'));
+      const mod = fromRoot('playwright');
+      if (mod?.chromium) return mod;
+    } catch {
+      // try the next root
+    }
+  }
+
+  throw new Error(
+    `Playwright was not found. Run "npm ci" and "npx playwright install chromium" in the project that holds it, ` +
+      `or pass --playwright-root <dir>. Tried: ${roots.join(', ')}`,
+  );
 }
 
 async function main() {
@@ -82,15 +120,7 @@ async function main() {
   const viewports = options.viewports.length ? options.viewports.map(parseViewport) : DEFAULT_VIEWPORTS.map(parseViewport);
   const states = options.states.length ? options.states : [undefined];
 
-  const require = createRequire(join(repoRoot, 'apps/web/package.json'));
-  let chromium;
-  try {
-    ({ chromium } = require('playwright'));
-  } catch {
-    throw new Error(
-      `Playwright is not installed in apps/web. Run "npm ci" in apps/web, then run "npx playwright install chromium".`,
-    );
-  }
+  const { chromium } = loadPlaywright(options.playwrightRoot);
 
   const browser = await chromium.launch();
   const written = [];

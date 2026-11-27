@@ -114,10 +114,16 @@ Draw the surface as an image. Do not reply with ASCII art and do not describe th
 prose alone: the member has to see the hierarchy to accept it.
 
 ```bash
-cp .pi/skills/ux-architect/references/wireframe-template.html /tmp/ux-wireframes/<slug>.html
-node .pi/skills/ux-architect/scripts/render-wireframe.mjs \
+# <skill-dir> is the directory that holds this SKILL.md; Pi names it when it loads the skill
+cp <skill-dir>/references/wireframe-template.html /tmp/ux-wireframes/<slug>.html
+node <skill-dir>/scripts/render-wireframe.mjs \
   --html /tmp/ux-wireframes/<slug>.html --state page --viewport 1440x900 --viewport 390x844
 ```
+
+The renderer takes Playwright from the project you run it in: `apps/web` under the current
+directory, then the current directory itself. Pass `--playwright-root <dir>` when it lives
+somewhere else. When the change keeps its wireframes in the repository, render them straight
+into that folder with `--out`.
 
 1. Copy the kit and edit the body: the real sections, the real labels, the actions and the
    numbered notes.

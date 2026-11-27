@@ -103,7 +103,8 @@ It was written for one repository and carries some assumptions about it:
 
 - `docs/klarsprak.md` and `docs/asd-ste100.md` for Swedish and English writing standards.
 - `apps/web/src/styles.css` and `apps/web/src/components/ds` for the design tokens and components.
-- `apps/web`'s Playwright installation for the renderer.
+
+The renderer does not assume where the skill lives. It takes Playwright from the project it runs in (`apps/web` under the current directory, then the current directory itself) and accepts `--playwright-root <dir>` when the installation is elsewhere. The skill's own paths are written as `<skill-dir>`, the directory Pi names when it loads the skill, so the same copy works at `.agents/skills/ux-architect`, at `.pi/skills/ux-architect`, or at user level.
 
 In another project, either adjust those references or keep the schema and bring your own skill under the same name. The schema only depends on the skill being called `/skill:ux-architect` and on it producing image files.
 
